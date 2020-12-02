@@ -29,11 +29,7 @@ loans_txt = sc.textFile("LOANS.TXT")
 loans = loans_txt.coalesce(1).map(lambda line: line.split("|"))
 headers = loans.first()
 loans = loans.filter(lambda line: line != headers)
-loans = loans.map(lambda line: (int(line[0]),
-                                line[1],
-                                int(line[2]),
-                                line[3]
-                                ))
+loans = loans.map(lambda line: (int(line[0]),line[1],int(line[2]),line[3]))
 
 # last value is true means it's allowed to be null
 loans_schema = StructType([
@@ -44,6 +40,7 @@ loans_schema = StructType([
 ])
 
 loans_DF = spark.createDataFrame(loans, loans_schema)
+loans_DF.select(to_date(loans_DF.date_key, "yyyy-MM-dd").alias("date_key")).collect()
 loans_DF.createOrReplaceTempView("loansTable")
 query = spark.sql("""SELECT * FROM loansTable""")
 query.write.format("csv").save("loansTable")
