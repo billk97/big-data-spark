@@ -45,8 +45,13 @@ loans_DF.createOrReplaceTempView("loansTable")
 query = spark.sql("""SELECT * FROM loansTable""")
 query.write.format("csv").save("loansTable")
 
+# creating qube
 
-
-# borrower_df = borrowers.toDF()
-# borrower_df.write.csv("borrowerCSV")
-
+qube = spark.sql(
+    """
+    SELECT department, gender, SUM(bid)
+    FROM
+    borrowersTable
+    INNER JOIN loansTable ON borrowersTable.bid, loansTable.bid
+    GROUP BY department, gender
+    """)
