@@ -53,7 +53,7 @@ join = bt.join(lt, "bid")
 join.createOrReplaceTempView("join")
 
 
-qube_all = spark.sql("SELECT department, gender, SUM(bid) FROM join  GROUP BY GROUPING SETS((department, gender), (department), (gender), ())")
+qube_all = spark.sql("SELECT department, gender, SUM(bid) as bid_count FROM join  GROUP BY GROUPING SETS((department, gender), (department), (gender), ())")
 qube_all = qube_all.coalesce(1)
 qube_all.write.format("csv").save("all_qube")
 
@@ -68,3 +68,12 @@ qube_dep.write.format("csv").save("department")
 qube_gent = spark.sql("SELECT gender, SUM(bid) FROM join GROUP BY gender")
 qube_gent = qube_gent.coalesce(1)
 qube_gent.write.format("csv").save("gender")
+
+
+# erotima 2
+t = qube_both.alias("t")
+tm = t.select("department", t.gender, t.bid_count).where(t.gender == "M")
+tf = t.select("department", t.gender, t.bid_count).where(t.gender == "F")
+tf = tf.withColumnRename("bid_count", "bid_count_F")
+tf.join(tm, "department")
+joined.select(joined.department).where("bid_count_F" > "bid_counr").show()
