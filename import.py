@@ -52,6 +52,11 @@ lt = loans_DF.alias("lt")
 join = bt.join(lt, "bid")
 join.createOrReplaceTempView("join")
 
+
+qube_all = spark.sql("SELECT department, gender, SUM(bid) FROM join  GROUP BY GROUPING SETS((department, gender), (department), (gender), ())")
+qube_all = qube_all.coalesce(1)
+qube_all.write.format("csv").save("all_qube")
+
 qube_both = spark.sql("SELECT department, gender, SUM(bid) FROM join GROUP BY department, gender")
 qube_both = qube_both.coalesce(1)
 qube_both.write.format("csv").save("department_gender")
