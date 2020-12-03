@@ -45,13 +45,21 @@ loans_DF.createOrReplaceTempView("loansTable")
 query = spark.sql("""SELECT * FROM loansTable""")
 query.write.format("csv").save("loansTable")
 
-# creating qube
+#creation join table
+bt = borrowers_DF.alias("bt")
+lt = loans_DF.alias("lt")
+# join = bt.join(lt, bt.bid == lt.bid)
+join = bt.join(lt, "bid")
+join.createOrReplaceTempView("join")
 
-qube = spark.sql(
-    """
-    SELECT department, gender, SUM(bid)
-    FROM
-    borrowersTable
-    INNER JOIN loansTable ON borrowersTable.bid, loansTable.bid
-    GROUP BY department, gender
-    """)
+qube_both = spark.sql("SELECT department, gender, SUM(bid) FROM join GROUP BY department, gender")
+qube_both = qube_both.coalesce(1)
+qube_both.write.format("csv").save("department_gender")
+
+qube_dep = spark.sql("SELECT department, SUM(bid) FROM join GROUP BY department")
+qube_dep = qube_dep.coalesce(1)
+qube_dep.write.format("csv").save("department")
+
+qube_gent = spark.sql("SELECT gender, SUM(bid) FROM join GROUP BY gender")
+qube_gent = qube_gent.coalesce(1)
+qube_gent.write.format("csv").save("gender")
